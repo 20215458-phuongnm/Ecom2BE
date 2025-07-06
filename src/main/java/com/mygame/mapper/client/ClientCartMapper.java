@@ -45,7 +45,7 @@ public class ClientCartMapper {
                 .collect(Collectors.toList());
         Set<CartVariant> newCartVariants = new HashSet<>();
 
-        // (1) Cập nhật các cartVariant đang có trong cart
+        // (1) Cập nhật slg cartVariant đang có trong cart
         for (CartVariant cartVariant : entity.getCartVariants()) {
             for (ClientCartVariantRequest clientCartVariantRequest : request.getCartItems()) {
                 if (Objects.equals(cartVariant.getCartVariantKey().getVariantId(), clientCartVariantRequest.getVariantId())) {

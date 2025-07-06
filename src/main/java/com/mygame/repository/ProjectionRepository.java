@@ -14,6 +14,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
+//Tính tồn kho
 @Repository
 @AllArgsConstructor
 public class ProjectionRepository {

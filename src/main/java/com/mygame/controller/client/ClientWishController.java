@@ -28,6 +28,7 @@ public class ClientWishController {
     private WishRepository wishRepository;
     private ClientWishMapper clientWishMapper;
 
+    // API: Lấy toàn bộ sản phẩm yêu thích của người dùng hiện tại
     @GetMapping
     public ResponseEntity<ListResponse<ClientWishResponse>> getAllWishes(
             Authentication authentication,
@@ -37,24 +38,28 @@ public class ClientWishController {
             @RequestParam(name = "filter", required = false) @Nullable String filter
     ) {
         String username = authentication.getName();
+        // Truy vấn danh sách sản phẩm yêu thích theo username
         Page<Wish> wishes = wishRepository.findAllByUsername(username, sort, filter, PageRequest.of(page - 1, size));
         List<ClientWishResponse> clientWishResponses = wishes.map(clientWishMapper::entityToResponse).toList();
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(clientWishResponses, wishes));
     }
 
+    // API: Thêm một sản phẩm vào danh sách yêu thíc
     @PostMapping
     public ResponseEntity<ClientWishResponse> createWish(@RequestBody ClientWishRequest request) throws Exception {
+        // Kiểm tra xem sản phẩm này đã có trong wishlist của user chưa
         Optional<Wish> wishOpt = wishRepository.findByUser_IdAndProduct_Id(request.getUserId(), request.getProductId());
 
         if (wishOpt.isPresent()) {
-            throw new Exception("Duplicated wish");
-        } else {
+            throw new Exception("Duplicated wish");  // Nếu đã tồn tại → không cho thêm trùng
+        } else { // Nếu chưa có → lưu wishlist mới
             Wish entity = clientWishMapper.requestToEntity(request);
             entity = wishRepository.save(entity);
             return ResponseEntity.status(HttpStatus.CREATED).body(clientWishMapper.entityToResponse(entity));
         }
     }
 
+    // API: Xóa nhiều wishlist theo danh sách id
     @DeleteMapping
     public ResponseEntity<Void> deleteWishes(@RequestBody List<Long> ids) {
         wishRepository.deleteAllById(ids);

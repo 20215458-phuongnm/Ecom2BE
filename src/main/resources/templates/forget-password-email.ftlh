@@ -179,7 +179,7 @@
           <td align="left" bgcolor="#ffffff"
               style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
             <p style="margin: 0;">
-              Phúc Anh Đường Shop sẽ không bao giờ gửi email cho bạn và yêu cầu bạn tiết lộ hoặc xác minh mật khẩu của bạn.
+              MyGame Shop sẽ không bao giờ gửi email cho bạn và yêu cầu bạn tiết lộ hoặc xác minh mật khẩu của bạn.
             </p>
           </td>
         </tr>
@@ -188,7 +188,7 @@
         <tr>
           <td align="left" bgcolor="#ffffff"
               style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-bottom: 3px solid #d4dadf">
-            <p style="margin: 0;">Chân thành cảm ơn, <br> Phúc Anh Đuơngf Shop </p>
+            <p style="margin: 0;">Chân thành cảm ơn, <br> MyGame Shop </p>
           </td>
         </tr>
         <!-- end copy -->

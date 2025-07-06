@@ -20,6 +20,7 @@ public class CountVariantController {
 
     private CountVariantService countVariantService;
 
+    // API: gỡ sản phẩm ra khỏi đợt kiểm kê
     @DeleteMapping("/{countId}/{variantId}")
     public ResponseEntity<Void> deleteCountVariant(@PathVariable("countId") Long countId,
                                                    @PathVariable("variantId") Long variantId) {
@@ -28,6 +29,7 @@ public class CountVariantController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    // API: Xóa nhiều bản ghi count-variant cùng lúc
     @DeleteMapping
     public ResponseEntity<Void> deleteCountVariants(@RequestBody List<CountVariantKeyRequest> idRequests) {
         List<CountVariantKey> ids = idRequests.stream()

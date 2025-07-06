@@ -41,6 +41,7 @@ public class InventoryController {
     private VariantRepository variantRepository;
     private VariantInventoryMapper variantInventoryMapper;
 
+    // API: Trả về danh sách tồn kho của các sản phẩm đã từng có giao dịch nhập/xuất kho
     @GetMapping("/product-inventories")
     public ResponseEntity<ListResponse<ProductInventoryResponse>> getProductInventories(
             @RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
@@ -74,6 +75,7 @@ public class InventoryController {
         return ResponseEntity.status(HttpStatus.OK).body(new ListResponse<>(productInventoryResponses, products));
     }
 
+    // API: Trả về tồn kho của các biến thể sản phẩm đã từng được nhập/xuất
     @GetMapping("/variant-inventories")
     public ResponseEntity<ListResponse<VariantInventoryResponse>> getVariantInventories(
             @RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
@@ -107,6 +109,7 @@ public class InventoryController {
         return ResponseEntity.status(HttpStatus.OK).body(new ListResponse<>(variantInventoryResponses, variants));
     }
 
+    // API: Trả về tồn kho chi tiết của một biến thể sản phẩm cụ thể
     @GetMapping("/variant-inventories/{variantId}")
     public ResponseEntity<VariantInventoryResponse> getVariantInventory(@PathVariable("variantId") Long variantId) {
         Variant variant = variantRepository.findById(variantId)

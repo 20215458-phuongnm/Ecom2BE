@@ -29,11 +29,13 @@ public class ImageController {
 
     private ImageService imageService;
 
+    // API: Upload một ảnh đơn lên server
     @PostMapping("/upload-single")
     public ResponseEntity<UploadedImageResponse> uploadSingleImage(@RequestParam("image") MultipartFile image) {
         return ResponseEntity.status(HttpStatus.OK).body(imageService.store(image));
     }
 
+    // API: Upload nhiều ảnh lên server cùng lúc
     @PostMapping("/upload-multiple")
     public ResponseEntity<CollectionWrapper<UploadedImageResponse>> uploadMultipleImages(@RequestParam("images") MultipartFile[] images) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -42,6 +44,7 @@ public class ImageController {
                         .collect(Collectors.toList())));
     }
 
+    // API: Truy cập/hiển thị ảnh đã upload dựa vào tên file
     @GetMapping("/{imageName:.+}")
     public ResponseEntity<Resource> serveImage(@PathVariable String imageName, HttpServletRequest request) {
         Resource resource = imageService.load(imageName);
@@ -49,6 +52,7 @@ public class ImageController {
         String contentType = null;
 
         try {
+            // Xác định type (image/jpeg, image/png, ...)
             contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
         } catch (IOException ex) {
             log.info("Could not determine file type.");
@@ -64,12 +68,14 @@ public class ImageController {
                 .body(resource);
     }
 
+    // API: Xóa một ảnh theo tên file
     @DeleteMapping("/{imageName:.+}")
     public ResponseEntity<Void> deleteImage(@PathVariable String imageName) {
         imageService.delete(imageName);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    // API: Xóa nhiều ảnh theo danh sách tên file
     @DeleteMapping
     public ResponseEntity<Void> deleteMultipleImages(@RequestBody List<String> imageNames) {
         imageNames.forEach(imageService::delete);

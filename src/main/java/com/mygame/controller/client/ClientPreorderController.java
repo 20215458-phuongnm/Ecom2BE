@@ -34,6 +34,7 @@ public class ClientPreorderController {
 
     private static final String PREORDER_SORT = "updatedAt,desc";
 
+    // API: Lấy danh sách preorder của người dùng hiện tại
     @GetMapping
     public ResponseEntity<ListResponse<ClientPreorderResponse>> getAllPreorders(
             Authentication authentication,
@@ -48,6 +49,7 @@ public class ClientPreorderController {
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(clientPreorderResponses, preorders));
     }
 
+    // API: Tạo mới preorder – hoặc cập nhật lại nếu preorder đã tồn tại nhưng từng bị hủy
     @PostMapping
     public ResponseEntity<ClientPreorderResponse> createPreorder(@RequestBody ClientPreorderRequest request) throws Exception {
         Optional<Preorder> preorderOpt = preorderRepository.findByUser_IdAndProduct_Id(request.getUserId(), request.getProductId());
@@ -56,20 +58,21 @@ public class ClientPreorderController {
             Preorder preorder = preorderOpt.get();
 
             if (preorder.getStatus().equals(1)) {
-                throw new Exception("Duplicated preorder");
+                throw new Exception("Duplicated preorder"); // Nếu đã có preorder đang hoạt động → báo lỗi
             } else {
-                preorder.setUpdatedAt(Instant.now());
+                preorder.setUpdatedAt(Instant.now()); // Nếu preorder tồn tại nhưng đã bị hủy → khôi phục lại
                 preorder.setStatus(1);
                 preorder = preorderRepository.save(preorder);
                 return ResponseEntity.status(HttpStatus.OK).body(clientPreorderMapper.entityToResponse(preorder));
             }
-        } else {
+        } else { // Nếu chưa có → tạo mới preorder
             Preorder entity = clientPreorderMapper.requestToEntity(request);
             entity = preorderRepository.save(entity);
             return ResponseEntity.status(HttpStatus.CREATED).body(clientPreorderMapper.entityToResponse(entity));
         }
     }
 
+    // API: Cập nhật thông tin preorder dựa theo userId productId
     @PutMapping
     public ResponseEntity<ClientPreorderResponse> updatePreorder(@RequestBody ClientPreorderRequest request) {
         ClientPreorderResponse clientPreorderResponse = preorderRepository
@@ -84,6 +87,7 @@ public class ClientPreorderController {
         return ResponseEntity.status(HttpStatus.OK).body(clientPreorderResponse);
     }
 
+    // API: Xóa nhiều preorder theo danh sách id
     @DeleteMapping
     public ResponseEntity<Void> deletePreorders(@RequestBody List<Long> ids) {
         preorderRepository.deleteAllById(ids);

@@ -37,6 +37,7 @@ public class ClientProductController {
     private ClientProductMapper clientProductMapper;
     private ReviewRepository reviewRepository;
 
+    // API: Lấy danh sách sản phẩm
     @GetMapping
     public ResponseEntity<ListResponse<ClientListedProductResponse>> getAllProducts(
             @RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
@@ -50,10 +51,10 @@ public class ClientProductController {
         // Phân trang
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        // Lấy danh sách sản phẩm theo điều kiện lọc và phân trang
+        // Truy vấn sản phẩm với điều kiện
         Page<Product> products = productRepository.findByParams(filter, sort, search, saleable, newable, pageable);
 
-        // Lấy thông tin tồn kho của sản phẩm
+        // Lấy danh sách ID để truy vấn tồn kho tương ứng
         List<Long> productIds = products.map(Product::getId).toList();
         List<SimpleProductInventory> productInventories = projectionRepository.findSimpleProductInventories(productIds);
 
@@ -63,18 +64,19 @@ public class ClientProductController {
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(clientListedProductResponses, products));
     }
 
+    // API: Lấy chi tiết một sản phẩm dựa vào slug
     @GetMapping("/{slug}")
     public ResponseEntity<ClientProductResponse> getProduct(@PathVariable String slug) {
-        Product product = productRepository.findBySlug(slug)
+        Product product = productRepository.findBySlug(slug) // Tìm sản phẩm theo slug
                 .orElseThrow(() -> new ResourceNotFoundException(ResourceName.PRODUCT, FieldName.SLUG, slug));
 
-        List<SimpleProductInventory> productInventories = projectionRepository
+        List<SimpleProductInventory> productInventories = projectionRepository // Lấy tồn kho của sản phẩm hiện tại
                 .findSimpleProductInventories(List.of(product.getId()));
-
+        // Lấy điểm đánh giá trung bình và số lượng đánh giá
         int averageRatingScore = reviewRepository.findAverageRatingScoreByProductId(product.getId());
         int countReviews = reviewRepository.countByProductId(product.getId());
 
-        // Related Products
+        // Lấy danh sách sản phẩm liên quan cùng category, nhưng khác id
         Page<Product> relatedProducts = productRepository.findByParams(
                 String.format("category.id==%s;id!=%s",
                         Optional.ofNullable(product.getCategory())
@@ -87,11 +89,11 @@ public class ClientProductController {
                 false,
                 false,
                 PageRequest.of(0, 4));
-
+        // Lấy tồn kho cho các sản phẩm liên quan
         List<Long> relatedProductIds = relatedProducts.map(Product::getId).toList();
         List<SimpleProductInventory> relatedProductInventories = projectionRepository
                 .findSimpleProductInventories(relatedProductIds);
-
+        // Map sang DTO danh sách sản phẩm liên quan
         List<ClientListedProductResponse> relatedProductResponses = relatedProducts
                 .map(p -> clientProductMapper.entityToListedResponse(p, relatedProductInventories)).toList();
 

@@ -2,6 +2,7 @@ package com.mygame.inventory;
 
 import lombok.Data;
 
+//response
 @Data
 public class SimpleProductInventory {
     private Long productId;

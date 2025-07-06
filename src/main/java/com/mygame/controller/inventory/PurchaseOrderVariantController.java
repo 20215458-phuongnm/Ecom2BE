@@ -20,6 +20,7 @@ public class PurchaseOrderVariantController {
 
     private PurchaseOrderVariantService purchaseOrderVariantService;
 
+    // API: Xóa sp khỏi phiếu đặt hàng
     @DeleteMapping("/{purchaseOrderId}/{variantId}")
     public ResponseEntity<Void> deletePurchaseOrderVariant(@PathVariable("purchaseOrderId") Long purchaseOrderId,
                                                            @PathVariable("variantId") Long variantId) {
@@ -28,6 +29,7 @@ public class PurchaseOrderVariantController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    // API: Xóa nhìu sp khỏi phiếu đặt hàng
     @DeleteMapping
     public ResponseEntity<Void> deletePurchaseOrderVariants(@RequestBody List<PurchaseOrderVariantKeyRequest> idRequests) {
         List<PurchaseOrderVariantKey> ids = idRequests.stream()

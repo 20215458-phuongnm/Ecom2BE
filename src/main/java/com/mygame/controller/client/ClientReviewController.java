@@ -31,6 +31,7 @@ public class ClientReviewController {
     private ReviewRepository reviewRepository;
     private ClientReviewMapper clientReviewMapper;
 
+    // API: Lấy danh sách review của một sản phẩm cụ thể (theo slug sản phẩm)
     @GetMapping("/products/{productSlug}")
     public ResponseEntity<ListResponse<ClientSimpleReviewResponse>> getAllReviewsByProduct(
             @PathVariable String productSlug,
@@ -39,11 +40,14 @@ public class ClientReviewController {
             @RequestParam(name = "sort", defaultValue = AppConstants.DEFAULT_SORT) String sort,
             @RequestParam(name = "filter", required = false) @Nullable String filter
     ) {
+        // Truy vấn tất cả review theo sản phẩm
         Page<Review> reviews = reviewRepository.findAllByProductSlug(productSlug, sort, filter, PageRequest.of(page - 1, size));
+        // Map sang DTO  hiển thị client
         List<ClientSimpleReviewResponse> clientReviewResponses = reviews.map(clientReviewMapper::entityToSimpleResponse).toList();
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(clientReviewResponses, reviews));
     }
 
+    // API: Lấy danh sách review của người dùng hiện tại
     @GetMapping
     public ResponseEntity<ListResponse<ClientReviewResponse>> getAllReviewsByUser(
             Authentication authentication,
@@ -53,17 +57,20 @@ public class ClientReviewController {
             @RequestParam(name = "filter", required = false) @Nullable String filter
     ) {
         String username = authentication.getName();
+        // Truy vấn các đánh giá của user đang đăng nhập
         Page<Review> reviews = reviewRepository.findAllByUsername(username, sort, filter, PageRequest.of(page - 1, size));
         List<ClientReviewResponse> clientReviewResponses = reviews.map(clientReviewMapper::entityToResponse).toList();
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(clientReviewResponses, reviews));
     }
 
+    // API: Tạo mới một đánh giá (review) sản phẩm
     @PostMapping
     public ResponseEntity<ClientReviewResponse> createReview(@RequestBody ClientReviewRequest request) {
         Review entity = reviewRepository.save(clientReviewMapper.requestToEntity(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(clientReviewMapper.entityToResponse(entity));
     }
 
+    // API: Cập nhật nội dung đánh giá đã tồn tại theo id
     @PutMapping("/{id}")
     public ResponseEntity<ClientReviewResponse> updateReview(@PathVariable Long id,
                                                              @RequestBody ClientReviewRequest request) {
@@ -75,6 +82,7 @@ public class ClientReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(clientReviewResponse);
     }
 
+    // API: Xóa nhiều review theo danh sách ID
     @DeleteMapping
     public ResponseEntity<Void> deleteReviews(@RequestBody List<Long> ids) {
         reviewRepository.deleteAllById(ids);

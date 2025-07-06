@@ -71,7 +71,7 @@ public abstract class ClientOrderMapper {
     public ClientOrderDetailResponse entityToDetailResponseCallback(@MappingTarget ClientOrderDetailResponse clientOrderDetailResponse) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-
+        //check xem đánh giá chưa
         for (var clientOrderVariantResponse : clientOrderDetailResponse.getOrderItems()) {
             var productId = clientOrderVariantResponse.getOrderItemVariant().getVariantProduct().getProductId();
             var productIsReviewed = reviewRepository.existsByProductIdAndUsername(productId, username);

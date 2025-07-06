@@ -27,6 +27,7 @@ public class PayPalHttpClient {
     private final PaypalConfig paypalConfig;
     private final ObjectMapper objectMapper;
 
+    //Lấy access token xác thực paypal
     public AccessTokenResponse getPaypalAccessToken() throws Exception {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(PayPalEndpoints.createUrl(paypalConfig.getBaseUrl(), PayPalEndpoints.GET_ACCESS_TOKEN)))
@@ -42,6 +43,7 @@ public class PayPalHttpClient {
         return objectMapper.readValue(content, AccessTokenResponse.class);
     }
 
+    //Lấy Client Token từ PayPal
     public ClientTokenResponse getClientToken() throws Exception {
         var accessTokenResponse = getPaypalAccessToken();
 
@@ -58,10 +60,12 @@ public class PayPalHttpClient {
         return objectMapper.readValue(content, ClientTokenResponse.class);
     }
 
+    //Tạo giao dịch thanh toán PayPal
     public PaypalResponse createPaypalTransaction(PaypalRequest paypalRequest) throws Exception {
         var accessTokenResponse = getPaypalAccessToken();
         var payload = objectMapper.writeValueAsString(paypalRequest);
 
+        //Gửi thông tin đơn hàng (PaypalRequest) lên PayPal để tạo một gd.
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(PayPalEndpoints.createUrl(paypalConfig.getBaseUrl(), PayPalEndpoints.ORDER_CHECKOUT)))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -75,6 +79,7 @@ public class PayPalHttpClient {
         return objectMapper.readValue(content, PaypalResponse.class);
     }
 
+    //Chốt thanh toán :>
     public void capturePaypalTransaction(String paypalOrderId, String payerId) throws Exception {
         var accessTokenResponse = getPaypalAccessToken();
 
@@ -91,6 +96,7 @@ public class PayPalHttpClient {
         // TODO: Convert response to object if we need (Using debugger to check propeties response)
     }
 
+    //Mã hóa ttin xác thực
     private String encodeBasicCredentials() {
         var input = paypalConfig.getClientId() + ":" + paypalConfig.getSecret();
         return "Basic " + Base64.getEncoder().encodeToString(input.getBytes(StandardCharsets.UTF_8));

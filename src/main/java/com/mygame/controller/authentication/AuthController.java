@@ -36,6 +36,13 @@ public class AuthController {
     private UserRepository userRepository;
     private UserMapper userMapper;
 
+    /**
+     * Đăng nhập hệ thống:
+     * - Nhận username và password từ client.
+     * - Xác thực người dùng thông qua AuthenticationManager.
+     * - Nếu thành công, sinh ra accessToken (JWT) và refreshToken.
+     * - Trả về JwtResponse chứa token và thời gian.
+     */
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -47,6 +54,12 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse("Login success!", jwt, refreshToken, Instant.now()));
     }
 
+    /**
+     * Làm mới access token từ refresh token:
+     * - Nhận refreshToken từ client.
+     * - Kiểm tra tính hợp lệ và hạn sử dụng.
+     * - Nếu hợp lệ, tạo mới accessToken và trả về cho client.
+     */
     @PostMapping("/refresh-token")//ModelAttribute
     public ResponseEntity<JwtResponse> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
@@ -61,42 +74,79 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse("Refresh token", jwt, refreshToken, Instant.now()));
     }
 
+    /**
+     * Đăng ký tài khoản:
+     * - Nhận thông tin người dùng
+     * - Tạo tài khoản mới ở trạng thái chờ xác minh.
+     * - Sinh và gửi token xác minh qua email.
+     * - Trả về userId để client theo dõi đăng ký.
+     */
     @PostMapping("/registration")
     public ResponseEntity<RegistrationResponse> registerUser(@RequestBody UserRequest userRequest) {
         Long userId = verificationService.generateTokenVerify(userRequest);
         return ResponseEntity.status(HttpStatus.OK).body(new RegistrationResponse(userId));
     }
 
+    /**
+     * Gửi lại token xác nhận đăng ký:
+     * - Khi người dùng chưa xác nhận email, gọi API này để gửi lại token.
+     * - Dựa vào userId để tìm lại thông tin người dùng.
+     */
     @GetMapping("/registration/{userId}/resend-token")
     public ResponseEntity<ObjectNode> resendRegistrationToken(@PathVariable Long userId) {
         verificationService.resendRegistrationToken(userId);
         return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
     }
 
+    /**
+     * Xác nhận đăng ký tài khoản:
+     * - Nhận username và token từ email xác minh.
+     * - Kiểm tra và xác nhận tài khoản.
+     */
     @PostMapping("/registration/confirm")
     public ResponseEntity<ObjectNode> confirmRegistration(@RequestBody RegistrationRequest registration) {
         verificationService.confirmRegistration(registration);
         return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
     }
 
+    /**
+     * Đổi email đăng ký:
+     * - Khi người dùng nhập sai email lúc đăng ký.
+     * - Gửi lại token xác minh tới email mới.
+     */
     @PutMapping("/registration/{userId}/change-email")
     public ResponseEntity<ObjectNode> changeRegistrationEmail(@PathVariable Long userId, @RequestParam String email) {
         verificationService.changeRegistrationEmail(userId, email);
         return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
     }
 
+    /**
+     * Gửi email quên mật khẩu:
+     * - Nhận email từ client.
+     * - Nếu email tồn tại, gửi email chứa link reset mật khẩu.
+     */
     @GetMapping("/forgot-password")
     public ResponseEntity<ObjectNode> forgotPassword(@RequestParam String email) {
         verificationService.forgetPassword(email);
         return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
     }
 
+    /**
+     * Đặt lại mật khẩu:
+     * - Nhận token reset và mật khẩu mới từ client.
+     * - Kiểm tra token và đổi mật khẩu cho tài khoản tương ứng.
+     */
     @PutMapping("/reset-password")
     public ResponseEntity<ObjectNode> resetPassword(@RequestBody ResetPasswordRequest resetPassword) {
         verificationService.resetPassword(resetPassword);
         return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
     }
 
+    /**
+     * Lấy thông tin người dùng hiện tại:
+     * - Dựa vào JWT trong Authentication object.
+     * - Trả về thông tin user tương ứng (username, email,...).
+     */
     @GetMapping("/info")
     public ResponseEntity<UserResponse> getAdminUserInfo(Authentication authentication) {
         String username = authentication.getName();

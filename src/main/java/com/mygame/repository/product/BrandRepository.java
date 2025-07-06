@@ -15,6 +15,7 @@ import java.util.List;
 
 public interface BrandRepository extends JpaRepository<Brand, Long>, JpaSpecificationExecutor<Brand> {
 
+    //Laays brand có sp
     default List<Brand> findByCategorySlug(String slug) {
         Specification<Brand> spec = (root, query, cb) -> {
             Join<Brand, Product> product = root.join("products");

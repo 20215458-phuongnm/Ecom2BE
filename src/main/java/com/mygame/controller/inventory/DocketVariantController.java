@@ -20,6 +20,7 @@ public class DocketVariantController {
 
     private DocketVariantService docketVariantService;
 
+    //Xóa sp khỏi phiếu
     @DeleteMapping("/{docketId}/{variantId}")
     public ResponseEntity<Void> deleteDocketVariant(@PathVariable("docketId") Long docketId,
                                                     @PathVariable("variantId") Long variantId) {
@@ -28,6 +29,7 @@ public class DocketVariantController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    //Xóa nhìu sp khỏi phiếu
     @DeleteMapping
     public ResponseEntity<Void> deleteDocketVariants(@RequestBody List<DocketVariantKeyRequest> idRequests) {
         List<DocketVariantKey> ids = idRequests.stream()

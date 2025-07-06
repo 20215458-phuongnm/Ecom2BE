@@ -17,7 +17,7 @@ public interface AddressMapper extends GenericMapper<Address, AddressRequest, Ad
     @Mapping(source = "provinceId", target = "province")
     @Mapping(source = "districtId", target = "district")
     @Mapping(source = "wardId", target = "ward")
-    Address requestToEntity(AddressRequest request);
+    Address requestToEntity(AddressRequest request); //chuyển address request -> address entity
 
     @Override
     @Mapping(source = "provinceId", target = "province")

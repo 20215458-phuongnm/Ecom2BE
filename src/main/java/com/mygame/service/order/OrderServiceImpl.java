@@ -80,6 +80,7 @@ public class OrderServiceImpl implements OrderService {
 
     private static final int USD_VND_RATE = 25_000;
 
+    //HỦY ĐƠN HÀNG (HỦY VẬN ĐƠN)
     @Override
     public void cancelOrder(String code) {
         Order order = orderRepository.findByCode(code)
@@ -132,6 +133,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    //TẠO ĐƠN HÀNG
     @Override
     public ClientConfirmedOrderResponse createClientOrder(ClientSimpleOrderRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -256,6 +258,7 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
+    //HOÀN TẤT GD PAYPAL
     @Override
     public void captureTransactionPaypal(String paypalOrderId, String payerId) {
         Order order = orderRepository.findByPaypalOrderId(paypalOrderId)

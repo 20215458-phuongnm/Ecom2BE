@@ -18,6 +18,7 @@ public class PromotionController {
 
     private PromotionService promotionService;
 
+    // API: Kiểm tra xem một sản phẩm có thể km, kiểu 1 sp có 1 km
     @GetMapping("/checking")
     public ResponseEntity<PromotionCheckingResponse> checkCanCreatePromotionForProduct(
             @RequestParam Long productId,

@@ -18,6 +18,7 @@ public class WaybillController {
 
     private WaybillService waybillService;
 
+    // API: Nhận callback từ GHN khi trạng thái vận đơn thay đổi
     @PutMapping("/callback-ghn")
     public ResponseEntity<ObjectNode> callbackStatusWaybillFromGHN(@RequestBody GhnCallbackOrderRequest ghnCallbackOrderRequest) {
         waybillService.callbackStatusWaybillFromGHN(ghnCallbackOrderRequest);

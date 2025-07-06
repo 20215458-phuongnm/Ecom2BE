@@ -34,6 +34,7 @@ public class PromotionServiceImpl implements PromotionService {
         return defaultFindById(id, promotionRepository, promotionMapper, ResourceName.PROMOTION);
     }
 
+    //TẠO KM
     @Override
     public PromotionResponse save(PromotionRequest request) {
         Promotion promotion = promotionMapper.requestToEntity(request);
@@ -45,6 +46,7 @@ public class PromotionServiceImpl implements PromotionService {
         for (Product product : promotion.getProducts()) {
             List<Promotion> promotions = promotionRepository
                     .findByProductId(product.getId(), promotion.getStartDate(), promotion.getEndDate());
+            //Check truungf
             if (promotions.size() > 0) {
                 throw new RuntimeException("Overlap promotion with product id: " + product.getId());
             }
@@ -53,6 +55,7 @@ public class PromotionServiceImpl implements PromotionService {
         return promotionMapper.entityToResponse(promotionRepository.save(promotion));
     }
 
+    //UPDATE :))
     @Override
     public PromotionResponse save(Long id, PromotionRequest request) {
         Promotion promotion = promotionRepository.findById(id)

@@ -37,6 +37,15 @@ public class ClientCartController {
     private ClientCartMapper clientCartMapper;
     private DocketVariantRepository docketVariantRepository;
 
+    /**
+     * Lấy thông tin giỏ hàng của người dùng hiện tại:
+     * - Dựa vào thông tin từ JWT (Spring Security) để lấy username.
+     * - Tìm giỏ hàng theo username trong DB.
+     * - Nếu có thì map sang ObjectNode để trả về, nếu không thì trả về ObjectNode rỗng.
+     *
+     * @param authentication Chứa username đã xác thực từ JWT
+     * @return JSON object chứa thông tin giỏ hàng (ClientCartResponse dưới dạng ObjectNode)
+     */
     @GetMapping
     public ResponseEntity<ObjectNode> getCart(Authentication authentication) {
         String username = authentication.getName();
@@ -51,6 +60,16 @@ public class ClientCartController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    /**
+     * Tạo mới hoặc cập nhật giỏ hàng:
+     * - Nếu `cartId` là null: Tạo giỏ hàng mới từ request.
+     * - Nếu có `cartId`: Tìm giỏ hàng cũ trong DB và cập nhật lại theo request.
+     * - Trước khi lưu, kiểm tra từng biến thể sản phẩm trong giỏ có vượt quá số lượng tồn kho không.
+     * - Nếu vượt quá tồn kho thì throw lỗi, ngược lại thì lưu vào DB.
+     *
+     * @param request Dữ liệu giỏ hàng gửi lên từ client
+     * @return Dữ liệu giỏ hàng sau khi lưu (ClientCartResponse)
+     */
     @PostMapping
     public ResponseEntity<ClientCartResponse> saveCart(@RequestBody ClientCartRequest request) {
         final Cart cartBeforeSave;
@@ -79,6 +98,15 @@ public class ClientCartController {
         return ResponseEntity.status(HttpStatus.OK).body(clientCartResponse);
     }
 
+    /**
+     * Xóa nhiều item trong giỏ hàng:
+     * - Nhận danh sách cartId + variantId từ client.
+     * - Duyệt qua từng item để tạo `CartVariantKey` (khóa tổng hợp).
+     * - Gọi repository để xóa tất cả theo danh sách key đó.
+     *
+     * @param idRequests Danh sách các item cần xóa (dựa theo cartId + variantId)
+     * @return 204 No Content nếu xóa thành công
+     */
     @DeleteMapping
     public ResponseEntity<Void> deleteCartItems(@RequestBody List<ClientCartVariantKeyRequest> idRequests) {
         List<CartVariantKey> ids = idRequests.stream()

@@ -28,11 +28,13 @@ public class ClientRewardController {
     private RewardLogRepository rewardLogRepository;
     private ClientRewardLogMapper clientRewardLogMapper;
 
+    // API: Lấy tổng điểm thưởng và lịch sử tích điểm của user hiện tại
     @GetMapping
     public ResponseEntity<ClientRewardResponse> getReward(Authentication authentication) {
         String username = authentication.getName();
 
-        int totalScore = rewardLogRepository.sumScoreByUsername(username);
+        int totalScore = rewardLogRepository.sumScoreByUsername(username); // Tổng hợp điểm thưởng
+        // Lấy lịch sử tích điểm
         List<ClientRewardLogResponse> logs = clientRewardLogMapper
                 .entityToResponse(rewardLogRepository
                         .findByUserUsername(username)

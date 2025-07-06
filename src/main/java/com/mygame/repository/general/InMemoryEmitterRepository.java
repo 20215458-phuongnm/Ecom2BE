@@ -24,6 +24,7 @@ public class InMemoryEmitterRepository implements EmitterRepository {
         emitterMap.put(uniqueKey, emitter);
     }
 
+    //Xóa emitter khi disconect
     @Override
     public void remove(String uniqueKey) {
         if (emitterMap.containsKey(uniqueKey)) {
@@ -35,16 +36,19 @@ public class InMemoryEmitterRepository implements EmitterRepository {
         }
     }
 
+    //Lấy emitter
     @Override
     public Optional<SseEmitter> getByUniqueKey(String uniqueKey) {
         return Optional.ofNullable(emitterMap.get(uniqueKey));
     }
 
+    //Lấy emitter
     @Override
     public Optional<SseEmitter> getByUuid(String uuid) {
         return Optional.ofNullable(uuidEmitterMap.get(uuid)).map(emitterMap::get);
     }
 
+    //Lấy uuid
     @Override
     public String getUuidByUniqueKey(String uniqueKey) {
         return uuidEmitterMap

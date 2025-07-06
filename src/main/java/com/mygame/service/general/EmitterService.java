@@ -13,6 +13,7 @@ public class EmitterService {
 
     private final EmitterRepository emitterRepository;
 
+    //Tạo kết nối SSE
     public void createEmitter(String uuid, String uniqueKey) {
         long eventsTimeout = 60 * 60 * 1000L; // 60 minutes
         SseEmitter emitter = new SseEmitter(eventsTimeout);

@@ -17,6 +17,7 @@ public class OrderController {
 
     private OrderService orderService;
 
+    // API: Hủy đơn hàng theo mã đơn
     @PutMapping("/cancel/{code}")
     public ResponseEntity<ObjectNode> cancelOrder(@PathVariable String code) {
         orderService.cancelOrder(code);

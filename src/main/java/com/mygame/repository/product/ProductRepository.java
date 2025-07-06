@@ -24,6 +24,7 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
+    //Tìm sp trong docket
     default Page<Product> findDocketedProducts(Pageable pageable) {
         Specification<Product> spec = (root, query, cb) -> {
             Join<Product, Variant> variant = root.join("variants");

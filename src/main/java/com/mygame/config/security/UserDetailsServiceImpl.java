@@ -16,6 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private UserRepository userRepository;
 
+    //Load ttin ng dùng
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

@@ -45,6 +45,7 @@ public class VerificationServiceImpl implements VerificationService {
     private CustomerRepository customerRepository;
     private PasswordEncoder passwordEncoder;
 
+    //Đăng ký tài khoản và gửi email
     @Override
     public Long generateTokenVerify(UserRequest userRequest) {
         // (1) Check if username exists in database
@@ -62,7 +63,11 @@ public class VerificationServiceImpl implements VerificationService {
         user.setStatus(2); // Non-verified
         user.setRoles(Set.of((Role) new Role().setId(3L)));
 
-        userRepository.save(user);
+        // ✅ Lưu để sinh ID
+        user = userRepository.save(user);  // gán lại
+
+        System.out.println("✅ Persisted User ID = " + user.getId());
+
 
         // (4) Create new verification entity and set user, token
         Verification verification = new Verification();
@@ -84,6 +89,7 @@ public class VerificationServiceImpl implements VerificationService {
         return user.getId();
     }
 
+    //Gửi lại OTP
     @Override
     public void resendRegistrationToken(Long userId) {
         Optional<Verification> verifyOpt = verificationRepository.findByUserId(userId);
@@ -106,6 +112,7 @@ public class VerificationServiceImpl implements VerificationService {
         }
     }
 
+    //Xác nhận token, kích hoạt tk
     @Override
     public void confirmRegistration(RegistrationRequest registration) {
         Optional<Verification> verifyOpt = verificationRepository.findByUserId(registration.getUserId());
@@ -122,7 +129,7 @@ public class VerificationServiceImpl implements VerificationService {
                 User user = verification.getUser();
                 user.setStatus(1); // Verified
                 userRepository.save(user);
-                verificationRepository.delete(verification);
+                verificationRepository.delete(verification); //Xoa db khi dky tcong
 
                 // (2) Create customer entity
                 Customer customer = new Customer();
@@ -161,6 +168,7 @@ public class VerificationServiceImpl implements VerificationService {
         }
     }
 
+    //Đổi email đăng ký trc khi xác minh
     @Override
     public void changeRegistrationEmail(Long userId, String emailUpdate) {
         Optional<Verification> verifyOpt = verificationRepository.findByUserId(userId);
@@ -186,6 +194,7 @@ public class VerificationServiceImpl implements VerificationService {
         }
     }
 
+    //Quên mk
     @Override
     public void forgetPassword(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email doesn't exist"));
@@ -202,6 +211,7 @@ public class VerificationServiceImpl implements VerificationService {
         }
     }
 
+    //Đổi mk khi có token đúng
     @Override
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
         User user = userRepository
@@ -211,6 +221,7 @@ public class VerificationServiceImpl implements VerificationService {
         userRepository.save(user);
     }
 
+    //Tạo OTP
     private String generateVerificationToken() {
         Random random = new Random();
         return String.format("%04d", random.nextInt(10000));

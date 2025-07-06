@@ -40,6 +40,7 @@ public class StatisticServiceImpl implements StatisticService {
     public StatisticResponse getStatistic() {
         StatisticResponse statisticResponse = new StatisticResponse();
 
+        //ĐÊMS
         // TODO: Nên dùng tên hàm `count` hợp lý hơn, như `countAll()`
         int totalCustomer = customerRepository.countByCustomerId();
         int totalProduct = productRepository.countByProductId();
@@ -50,11 +51,13 @@ public class StatisticServiceImpl implements StatisticService {
         int totalSupplier = supplierRepository.countBySupplierId();
         int totalBrand = brandRepository.countByBrandId();
 
+        //LẤY TTIN
         List<StatisticResource> statisticRegistration = userProjectionRepository.getUserCountByCreateDate();
         List<StatisticResource> statisticOrder = orderProjectionRepository.getOrderCountByCreateDate();
         List<StatisticResource> statisticReview = reviewProjectionRepository.getReviewCountByCreateDate();
         List<StatisticResource> statisticWaybill = waybillProjectionRepository.getWaybillCountByCreateDate();
 
+        //SET DL CHO RESPONSE
         statisticResponse.setTotalCustomer(totalCustomer);
         statisticResponse.setTotalProduct(totalProduct);
         statisticResponse.setTotalOrder(totalOrder);

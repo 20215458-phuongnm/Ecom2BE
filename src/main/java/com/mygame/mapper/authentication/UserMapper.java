@@ -17,7 +17,7 @@ public interface UserMapper extends GenericMapper<User, UserRequest, UserRespons
     @Override
     @BeanMapping(qualifiedByName = "attachUser")
     @Mapping(source = "password", target = "password", qualifiedByName = "hashPassword")
-    User requestToEntity(UserRequest request);
+    User requestToEntity(UserRequest request); //băm pass nh
 
     @Override
     @BeanMapping(qualifiedByName = "attachUser")

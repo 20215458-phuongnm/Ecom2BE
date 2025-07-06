@@ -20,6 +20,7 @@ public class OrderVariantController {
 
     private OrderVariantService orderVariantService;
 
+    // API: Xóa sp khỏi order
     @DeleteMapping("/{orderId}/{variantId}")
     public ResponseEntity<Void> deleteOrderVariant(@PathVariable("orderId") Long orderId,
                                                    @PathVariable("variantId") Long variantId) {
@@ -28,6 +29,7 @@ public class OrderVariantController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    // API: Xóa sp khỏi order
     @DeleteMapping
     public ResponseEntity<Void> deleteOrderVariants(@RequestBody List<OrderVariantKeyRequest> idRequests) {
         List<OrderVariantKey> ids = idRequests.stream()

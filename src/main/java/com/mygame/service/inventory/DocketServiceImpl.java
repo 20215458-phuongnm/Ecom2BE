@@ -69,16 +69,18 @@ public class DocketServiceImpl implements DocketService {
         return docketMapper.entityToResponse(docket);
     }
 
+    //Hậu xử lý preorder
     private void afterCreateOrUpdateCallback(Docket docket) {
         // Docket nhập (1) có trạng thái Hoàn thành (3)
+        // (1) Lấy các sản phẩm có trong Docket nhập kho
         if (docket.getType().equals(1) && docket.getStatus().equals(3)) {
             List<Long> productIds = docket.getDocketVariants().stream()
                     .map(docketVariant -> docketVariant.getVariant().getProduct().getId())
                     .distinct()
                     .collect(Collectors.toList());
-
+// (2) Tìm các preorder đang chờ cho các sản phẩm đó
             List<Preorder> preorders = preorderRepository.findByProduct_IdInAndStatus(productIds, 1);
-
+// (3) Gửi Notification đến người dùng đặt trước
             List<Notification> notifications = preorders.stream()
                     .map(preorder -> new Notification()
                             .setUser(preorder.getUser())
@@ -99,7 +101,7 @@ public class DocketServiceImpl implements DocketService {
             });
 
             preorderRepository.saveAll(preorders);
-
+// (4) Cập nhật preorder thành đã xử lý
             List<String> usernames = notifications.stream()
                     .map(notification -> notification.getUser().getUsername())
                     .collect(Collectors.toList());

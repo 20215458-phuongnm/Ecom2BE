@@ -24,6 +24,7 @@ public class ClientPaymentMethodController {
     private PaymentMethodRepository paymentMethodRepository;
     private PaymentMethodMapper paymentMethodMapper;
 
+    // API: Trả về danh sách các phương thức thanh toán đang được kích hoạt
     @GetMapping
     public ResponseEntity<CollectionWrapper<ClientPaymentMethodResponse>> getAllPaymentMethods() {
         List<ClientPaymentMethodResponse> clientPaymentMethodResponses = paymentMethodMapper

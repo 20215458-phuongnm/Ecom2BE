@@ -20,18 +20,21 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     private Configuration freemakerConfiguration;
     private JavaMailSender javaMailSender;
 
+    //Gửi mail xác thực
     @Override
     public void sendVerificationToken(String toEmail, Map<String, Object> attributes) {
         String text = getEmailContent("verify-email.ftlh", attributes);
         sendEmail(toEmail, "[MYGAME] Xác thực email", text);
     }
 
+    //Gửi mail quên mk
     @Override
     public void sendForgetPasswordToken(String toEmail, Map<String, Object> attributes) {
         String text = getEmailContent("forget-password-email.ftlh", attributes);
         sendEmail(toEmail, "[MYGAME] Yêu cầu cấp lại mật khẩu", text);
     }
 
+    //tạo content gửi mail
     private String getEmailContent(String template, Map<String, Object> model) {
         try {
             StringWriter stringWriter = new StringWriter();
@@ -42,6 +45,7 @@ public class EmailSenderServiceImpl implements EmailSenderService {
         }
     }
 
+    //Gửi mail :))
     private void sendEmail(String to, String subject, String text) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();

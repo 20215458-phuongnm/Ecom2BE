@@ -71,6 +71,7 @@ public class WaybillServiceImpl implements WaybillService {
         return defaultFindById(id, waybillRepository, waybillMapper, ResourceName.WAYBILL);
     }
 
+    //Tạo waybill từ order
     @Override
     public WaybillResponse save(WaybillRequest waybillRequest) {
         Optional<Waybill> waybillOpt = waybillRepository.findByOrderId(waybillRequest.getOrderId());
@@ -82,7 +83,7 @@ public class WaybillServiceImpl implements WaybillService {
         Order order = orderRepository.findById(waybillRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException(ResourceName.ORDER, FieldName.ID, waybillRequest.getOrderId()));
 
-        // Tạo waybill khi order.status == 1
+        // Tạo waybill khi order.status chờ duyệt
         if (order.getStatus() == 1) {
             String createGhnOrderApiPath = ghnApiPath + "/shipping-order/create";
 
@@ -94,6 +95,7 @@ public class WaybillServiceImpl implements WaybillService {
 
             RestTemplate restTemplate = new RestTemplate();
 
+            //Gọi API GHN
             var request = new HttpEntity<>(buildGhnCreateOrderRequest(waybillRequest, order), headers);
             var response = restTemplate.postForEntity(createGhnOrderApiPath, request, GhnCreateOrderResponse.class);
 
@@ -169,6 +171,7 @@ public class WaybillServiceImpl implements WaybillService {
         }
     }
 
+    //update waybill
     @Override
     public WaybillResponse save(Long id, WaybillRequest waybillRequest) {
         Waybill waybill = waybillRepository.findById(id)
@@ -209,6 +212,7 @@ public class WaybillServiceImpl implements WaybillService {
         waybillRepository.deleteAllById(ids);
     }
 
+    //TẠO BODY TẠO VẬN ĐƠN, CHUYỂN TTIN ĐƠN HÀNG
     private GhnCreateOrderRequest buildGhnCreateOrderRequest(WaybillRequest waybillRequest, Order order) {
         GhnCreateOrderRequest ghnCreateOrderRequest = new GhnCreateOrderRequest();
 
@@ -221,7 +225,7 @@ public class WaybillServiceImpl implements WaybillService {
         ghnCreateOrderRequest.setToWardName(order.getToWardName());
         ghnCreateOrderRequest.setToDistrictName(order.getToDistrictName());
         ghnCreateOrderRequest.setToProvinceName(order.getToProvinceName());
-        ghnCreateOrderRequest.setCodAmount(
+        ghnCreateOrderRequest.setCodAmount( //số tiền thu hộ
                 order.getPaymentMethodType() == PaymentMethodType.CASH
                         ? order.getTotalPay().intValue() // totalPay lúc này là tổng tiền tạm thời
                         : 0
@@ -232,9 +236,9 @@ public class WaybillServiceImpl implements WaybillService {
         ghnCreateOrderRequest.setHeight(waybillRequest.getHeight());
         ghnCreateOrderRequest.setServiceTypeId(2);
         ghnCreateOrderRequest.setServiceId(0);
-        ghnCreateOrderRequest.setPickupTime(waybillRequest.getShippingDate().getEpochSecond());
+        ghnCreateOrderRequest.setPickupTime(waybillRequest.getShippingDate().getEpochSecond()); //tgian
 
-        List<GhnCreateOrderRequest.Item> items = new ArrayList<>();
+        List<GhnCreateOrderRequest.Item> items = new ArrayList<>(); //dsach sp
         for (OrderVariant orderVariant : order.getOrderVariants()) {
             var item = new GhnCreateOrderRequest.Item();
             item.setName(buildGhnProductName(orderVariant.getVariant().getProduct().getName(),
@@ -282,6 +286,7 @@ public class WaybillServiceImpl implements WaybillService {
                 : 1; // Thanh toán PayPal, Người gửi trả tiền vận chuyển
     }
 
+    //TẠO BODY UPDATE VẬN ĐƠN
     private GhnUpdateOrderRequest buildGhnUpdateOrderRequest(WaybillRequest waybillRequest, Waybill waybill) {
         GhnUpdateOrderRequest ghnUpdateOrderRequest = new GhnUpdateOrderRequest();
 
@@ -295,26 +300,29 @@ public class WaybillServiceImpl implements WaybillService {
     @Override
     public void callbackStatusWaybillFromGHN(GhnCallbackOrderRequest ghnCallbackOrderRequest) {
         if (Objects.equals(ghnCallbackOrderRequest.getShopID().toString(), ghnShopId)) {
+            //tìm waybill theo ordercode
             Waybill waybill = waybillRepository.findByCode(ghnCallbackOrderRequest.getOrderCode())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             ResourceName.WAYBILL, FieldName.WAYBILL_CODE, ghnCallbackOrderRequest.getOrderCode()));
 
             Order order = waybill.getOrder();
-
+            //tạo log
             WaybillLog waybillLog = new WaybillLog();
             waybillLog.setWaybill(waybill);
             waybillLog.setPreviousStatus(waybill.getStatus());
 
             int currentWaybillStatus = WaybillCallbackConstants.WAYBILL_STATUS_CODE
                     .get(ghnCallbackOrderRequest.getStatus());
-
+            //So sánh và cập nhật
             if (!waybill.getStatus().equals(currentWaybillStatus)) {
                 switch (currentWaybillStatus) {
+                    //chờ lấy hàng
                     case WaybillCallbackConstants.WAITING:
                         waybillLog.setCurrentStatus(1);
                         waybill.setStatus(1);
-                        order.setStatus(2);
+                        order.setStatus(2); //(2) đang xử lý
                         break;
+                    //đang vậ chuyển
                     case WaybillCallbackConstants.SHIPPING:
                         createNotification(new Notification()
                                 .setUser(order.getUser())
@@ -326,6 +334,7 @@ public class WaybillServiceImpl implements WaybillService {
                         waybill.setStatus(2);
                         order.setStatus(3);
                         break;
+                    //Giao tcong
                     case WaybillCallbackConstants.SUCCESS:
                         createNotification(new Notification()
                                 .setUser(order.getUser())
@@ -344,6 +353,7 @@ public class WaybillServiceImpl implements WaybillService {
                         // Tích điểm
                         rewardUtils.successOrderHook(order);
                         break;
+                    //bị hủy
                     case WaybillCallbackConstants.FAILED:
                     case WaybillCallbackConstants.RETURN:
                         // TODO: CẦN THỐNG NHẤT VỀ CÁCH TRẢ HÀNG HOẶC HỦY ĐƠN HÀNG

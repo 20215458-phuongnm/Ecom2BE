@@ -1,33 +1,52 @@
 package com.mygame.repository.authentication;
 
 import com.mygame.dto.statistic.StatisticResource;
-import com.mygame.entity.authentication.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.Query;
+import java.sql.Date;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @AllArgsConstructor
 public class UserProjectionRepository {
 
-    private EntityManager em;
+    private final EntityManager em;
 
     public List<StatisticResource> getUserCountByCreateDate() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<StatisticResource> query = cb.createQuery(StatisticResource.class);
+        try {
+            String sql = "SELECT DATE(created_at) AS created_date, COUNT(id) " +
+                    "FROM `user` " +
+                    "GROUP BY DATE(created_at) " +
+                    "ORDER BY DATE(created_at)";
 
-        Root<User> user = query.from(User.class);
-        query.select(cb.construct(StatisticResource.class, user.get("createdAt").as(Instant.class), cb.count(user.get("id"))));
-        query.groupBy(user.get("createdAt").as(Instant.class));
-        query.orderBy(cb.asc(user.get("createdAt")));
+            Query nativeQuery = em.createNativeQuery(sql);
 
-        return em.createQuery(query).getResultList();
+            @SuppressWarnings("unchecked")
+            List<Object[]> results = nativeQuery.getResultList();
+
+            return results.stream()
+                    .map(row -> {
+                        java.sql.Date sqlDate = (java.sql.Date) row[0];
+                        Long count = ((Number) row[1]).longValue();
+
+                        // ✅ Chuyển từ java.sql.Date -> LocalDate -> Instant (bắt buộc)
+                        Instant instantDate = sqlDate.toLocalDate()
+                                .atStartOfDay(java.time.ZoneId.systemDefault()) // hoặc ZoneOffset.UTC
+                                .toInstant();
+
+                        return new StatisticResource(instantDate, count);
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi thống kê người dùng theo ngày tạo", e);
+        }
     }
 
 }

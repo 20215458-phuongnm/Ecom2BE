@@ -1,33 +1,52 @@
 package com.mygame.repository.order;
 
 import com.mygame.dto.statistic.StatisticResource;
-import com.mygame.entity.order.Order;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.Query;
+import java.sql.Date;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @AllArgsConstructor
 public class OrderProjectionRepository {
 
-    private EntityManager em;
+    private final EntityManager em;
 
+    // Đếm số lượng đơn hàng theo ngày tạo
     public List<StatisticResource> getOrderCountByCreateDate() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<StatisticResource> query = cb.createQuery(StatisticResource.class);
+        try {
+            String sql = "SELECT DATE(created_at) AS created_date, COUNT(id) " +
+                    "FROM `order` " +
+                    "GROUP BY DATE(created_at) " +
+                    "ORDER BY DATE(created_at)";
 
-        Root<Order> order = query.from(Order.class);
-        query.select(cb.construct(StatisticResource.class, order.get("createdAt").as(Instant.class), cb.count(order.get("id"))));
-        query.groupBy(order.get("createdAt").as(Instant.class));
-        query.orderBy(cb.asc(order.get("createdAt")));
+            Query nativeQuery = em.createNativeQuery(sql);
 
-        return em.createQuery(query).getResultList();
+            @SuppressWarnings("unchecked")
+            List<Object[]> results = nativeQuery.getResultList();
+
+            return results.stream()
+                    .map(row -> {
+                        Date sqlDate = (Date) row[0];
+                        Long count = ((Number) row[1]).longValue();
+
+                        // ✅ Convert java.sql.Date → LocalDate → Instant safely
+                        Instant instantDate = sqlDate.toLocalDate()
+                                .atStartOfDay(java.time.ZoneId.systemDefault())
+                                .toInstant();
+
+                        return new StatisticResource(instantDate, count);
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi thống kê đơn hàng theo ngày tạo", e);
+        }
     }
-
 }

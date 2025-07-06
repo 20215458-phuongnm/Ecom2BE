@@ -19,7 +19,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     // Đường dẫn /app-chat để connect vào WebSocket
-    // setAllowedOriginPatterns("*") là các đường dẫn tất cả URL host có thể connect được
     // Dùng thư viện socketjs để connect
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {

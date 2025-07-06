@@ -29,6 +29,7 @@ public class ClientUserController {
     private UserMapper userMapper;
     private PasswordEncoder passwordEncoder;
 
+    // API: Lấy thông tin tài khoản của người dùng hiện tại
     @GetMapping("/info")
     public ResponseEntity<UserResponse> getUserInfo(Authentication authentication) {
         String username = authentication.getName();
@@ -38,6 +39,7 @@ public class ClientUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
 
+    // API: Cập nhật thông tin cá nhân
     @PostMapping("/personal")
     public ResponseEntity<UserResponse> updatePersonalSetting(Authentication authentication,
                                                               @RequestBody ClientPersonalSettingUserRequest userRequest) {
@@ -50,6 +52,7 @@ public class ClientUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
 
+    // API: Cập nhật số điện thoại
     @PostMapping("/phone")
     public ResponseEntity<UserResponse> updatePhoneSetting(Authentication authentication,
                                                            @RequestBody ClientPhoneSettingUserRequest userRequest) {
@@ -62,6 +65,7 @@ public class ClientUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
 
+    // API: Cập nhật email
     @PostMapping("/email")
     public ResponseEntity<UserResponse> updateEmailSetting(Authentication authentication,
                                                            @RequestBody ClientEmailSettingUserRequest userRequest) {
@@ -74,6 +78,7 @@ public class ClientUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);
     }
 
+    // API: Đổi mật khẩu
     @PostMapping("/password")
     public ResponseEntity<ObjectNode> updatePasswordSetting(Authentication authentication,
                                                             @RequestBody ClientPasswordSettingUserRequest userRequest) throws Exception {
@@ -81,9 +86,9 @@ public class ClientUserController {
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
-
+        // Kiểm tra xem mật khẩu cũ
         if (passwordEncoder.matches(userRequest.getOldPassword(), user.getPassword())) {
-            String encodedNewPassword = passwordEncoder.encode(userRequest.getNewPassword());
+            String encodedNewPassword = passwordEncoder.encode(userRequest.getNewPassword()); // Nếu đúng → mã hóa mật khẩu mới và lưu lại
             user.setPassword(encodedNewPassword);
             userRepository.save(user);
 
@@ -91,7 +96,7 @@ public class ClientUserController {
             // More: https://codingexplained.com/coding/java/spring-framework/returning-empty-json-object-spring-framework
             return ResponseEntity.status(HttpStatus.OK).body(new ObjectNode(JsonNodeFactory.instance));
         } else {
-            throw new Exception("Wrong old password");
+            throw new Exception("Wrong old password"); // Nếu sai mật khẩu cũ → ném lỗi
         }
     }
 

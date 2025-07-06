@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long>, JpaSpecificationExecutor<Notification> {
 
+    //Get thông báo của user
     default Page<Notification> findAllByUsername(String username, String sort, String filter, Pageable pageable) {
         Specification<Notification> sortable = RSQLJPASupport.toSort(sort);
         Specification<Notification> filterable = RSQLJPASupport.toSpecification(filter);

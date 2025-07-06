@@ -39,6 +39,7 @@ public class ClientNotificationController {
     private final EmitterService emitterService;
     private final NotificationService notificationService;
 
+    // API: Lấy danh sách tất cả thông báo của người dùng hiện tại
     @GetMapping
     public ResponseEntity<ListResponse<NotificationResponse>> getAllNotifications(
             Authentication authentication,
@@ -48,38 +49,42 @@ public class ClientNotificationController {
             @RequestParam(name = "filter", required = false) @Nullable String filter
     ) {
         String username = authentication.getName();
+        // Lấy danh sách thông báo theo username
         Page<Notification> notifications = notificationRepository.findAllByUsername(username, sort, filter, PageRequest.of(page - 1, size));
         List<NotificationResponse> notificationResponses = notifications.map(notificationMapper::entityToResponse).toList();
         return ResponseEntity.status(HttpStatus.OK).body(ListResponse.of(notificationResponses, notifications));
     }
 
+    // API: Khởi tạo session nhận sự kiện SSE cho user, trả về UUID cho phía client
     // Reference: https://stackoverflow.com/a/62749980
     @GetMapping("/init-events")
     public ResponseEntity<EventInitiationResponse> initNotificationEvents(Authentication authentication) {
         String username = authentication.getName();
 
         String eventSourceUuid;
-
+        // Nếu đã có emitter cho user → dùng lại UUID cũ
         if (emitterService.isExistEmitterByUniqueKey(username)) {
             eventSourceUuid = emitterService.getEmitterUuidByUniqueKey(username);
-        } else {
+        } else { // Nếu chưa có → tạo UUID mới và tạo emitter
             eventSourceUuid = UUID.randomUUID().toString();
             emitterService.createEmitter(eventSourceUuid, username);
         }
-
+        // Trả về UUID cho phía client để dùng đăng ký sự kiện SSE
         EventInitiationResponse eventInitiationResponse = new EventInitiationResponse(eventSourceUuid);
         return ResponseEntity.status(HttpStatus.OK).body(eventInitiationResponse);
     }
 
+    // API: Dùng để client đăng ký lắng nghe sự kiện thông báo (SSE – Server Sent Events)
     @GetMapping("/events")
     public SseEmitter subscribeNotificationEvents(@RequestParam String eventSourceUuid) {
-        return emitterService.getEmitterByUuid(eventSourceUuid);
+        return emitterService.getEmitterByUuid(eventSourceUuid);  // Lấy emitter theo UUID đã được tạo từ trước
     }
 
+    // API: Cập nhật nội dung hoặc trạng thái của một thông báo
     @PutMapping("/{id}")
     public ResponseEntity<NotificationResponse> updateNotification(@PathVariable Long id,
                                                                    @RequestBody NotificationRequest request) {
-        NotificationResponse notificationResponse = notificationRepository
+        NotificationResponse notificationResponse = notificationRepository // Tìm thông báo theo ID → cập nhật theo request gửi lên
                 .findById(id)
                 .map(existingEntity -> notificationMapper.partialUpdate(existingEntity, request))
                 .map(notificationRepository::save)
@@ -88,10 +93,12 @@ public class ClientNotificationController {
         return ResponseEntity.status(HttpStatus.OK).body(notificationResponse);
     }
 
+    // API: Gửi thông báo mới đến user (tạo + đẩy sự kiện SSE nếu user đang online)
     @PostMapping("/push-events")
     public ResponseEntity<NotificationResponse> pushNotification(@RequestBody NotificationRequest request) {
         Notification notification = notificationRepository.save(notificationMapper.requestToEntity(request));
         NotificationResponse notificationResponse = notificationMapper.entityToResponse(notification);
+        // Đẩy notification qua emitter (nếu client đang lắng nghe SSE)
         notificationService.pushNotification(notification.getUser().getUsername(), notificationResponse);
         return ResponseEntity.status(HttpStatus.CREATED).body(notificationResponse);
     }

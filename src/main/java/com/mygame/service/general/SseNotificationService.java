@@ -19,7 +19,7 @@ public class SseNotificationService implements NotificationService {
     private final EmitterRepository emitterRepository;
     private final EventMapper eventMapper;
 
-    // uniqueKey thường là username
+
     @Override
     public void pushNotification(String uniqueKey, NotificationResponse notification) {
         emitterRepository
@@ -28,10 +28,10 @@ public class SseNotificationService implements NotificationService {
                     try {
                         log.debug("Sending event: {} for key: {}", notification, uniqueKey);
                         // Reference: https://stackoverflow.com/a/42803814
-                        emitter.send(eventMapper.toSseEventBuilder("message", notification));
+                        emitter.send(eventMapper.toSseEventBuilder("message", notification)); //send noti
                     } catch (IOException | IllegalStateException e) {
                         log.debug("Error while sending event: {} for key: {} - exception: {}", notification, uniqueKey, e);
-                        emitterRepository.remove(uniqueKey);
+                        emitterRepository.remove(uniqueKey); //Lỗi, xóa emiiter
                     }
                 }, () -> log.debug("No emitter for key: {}", uniqueKey));
     }

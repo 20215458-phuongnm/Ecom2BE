@@ -57,6 +57,8 @@ public abstract class MapperUtils {
     @Autowired
     private UserRepository userRepository;
 
+    //ánh xạ lại cho phù hợp
+
     public Province mapToProvince(@Nullable Long id) {
         return id == null ? null : provinceRepository.getById(id);
     }
@@ -68,6 +70,8 @@ public abstract class MapperUtils {
     public Ward mapToWard(@Nullable Long id) {
         return id == null ? null : wardRepository.getById(id);
     }
+
+    //Mapstruck tự động gen khi ánh xạ DTO
 
     public abstract Office mapToOffice(Long id);
 

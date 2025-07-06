@@ -21,22 +21,30 @@ public class ClientFilterController {
 
     private BrandRepository brandRepository;
 
+    // API: Lọc brand theo slug của category
     @GetMapping("/category")
     public ResponseEntity<ClientFilterResponse> getFilterByCategorySlug(@RequestParam String slug) {
+        // Truy vấn brand có liên quan đến category theo slug
         List<Brand> brands = brandRepository.findByCategorySlug(slug);
+
+        // Tạo response chứa danh sách brand
         ClientFilterResponse clientFilterResponse = new ClientFilterResponse();
         clientFilterResponse.setFilterBrands(mapToClientBrandResponse(brands));
         return ResponseEntity.status(HttpStatus.OK).body(clientFilterResponse);
     }
 
+    // API: Lọc brand theo từ khóa tìm kiếm
     @GetMapping("/search")
     public ResponseEntity<ClientFilterResponse> getFilterBySearchQuery(@RequestParam String query) {
+        // Truy vấn brand liên quan đến từ khóa tìm kiếm
         List<Brand> brands = brandRepository.findBySearchQuery(query);
+        // Tạo response trả về danh sách brand phù hợp
         ClientFilterResponse clientFilterResponse = new ClientFilterResponse();
         clientFilterResponse.setFilterBrands(mapToClientBrandResponse(brands));
         return ResponseEntity.status(HttpStatus.OK).body(clientFilterResponse);
     }
 
+    // Chuyển danh sách entity Brand → DTO dành cho client
     private List<ClientBrandResponse> mapToClientBrandResponse(List<Brand> brands) {
         return brands.stream()
                 .map(brand -> new ClientBrandResponse()

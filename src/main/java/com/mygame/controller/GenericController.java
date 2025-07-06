@@ -26,6 +26,7 @@ public class GenericController<I, O> {
     private CrudService<Long, I, O> crudService;
     private Class<I> requestType;
 
+    // Lấy danh sách tài nguyên với phân trang, sắp xếp, lọc, tìm kiếm
     public ResponseEntity<ListResponse<O>> getAllResources(
             @RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
             @RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
